@@ -1,19 +1,35 @@
 import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@chakra-ui/icons";
+import {
   Button,
   Center,
+  Flex,
   Heading,
+  IconButton,
   Image,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  Select,
   Spinner,
   Table,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
+  Tooltip,
   Tr,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
-import { useTable, useSortBy } from "react-table";
+import { useTable, useSortBy, usePagination } from "react-table";
 const url = "https://fakestoreapi.com/products";
 
 const tableColumn = [
@@ -64,14 +80,29 @@ const App = () => {
   const [products, setProducts] = useState([]);
   const columns = useMemo(() => tableColumn, []);
   const data = useMemo(() => products, [products]);
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns,
-        data,
-      },
-      useSortBy
-    );
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    page,
+    prepareRow,
+    gotoPage,
+    nextPage,
+    prevPage,
+    pageCount,
+    pageOptions,
+    setPageSize,
+    state: { pageIndex, pageSize },
+  } = useTable(
+    {
+      columns,
+      data,
+      initialState: { pageIndex: 1 },
+    },
+
+    useSortBy,
+    usePagination
+  );
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -110,7 +141,7 @@ const App = () => {
           ))}
         </Thead>
         <Tbody {...getTableBodyProps()}>
-          {rows.map((row, i) => {
+          {page.map((row, i) => {
             prepareRow(row);
 
             return (
@@ -123,6 +154,86 @@ const App = () => {
           })}
         </Tbody>
       </Table>
+      <Flex justify="space-between" m={4} align="center">
+        <Flex gap="4">
+          <Tooltip label="First Page">
+            <IconButton
+              onClick={() => gotoPage(0)}
+              icon={<ArrowLeftIcon h="3" w="3" />}
+            />
+          </Tooltip>
+          <Tooltip label="Prev Page">
+            <IconButton
+              onClick={prevPage}
+              icon={<ChevronLeftIcon h="3" w="3" fontSize="xl" />}
+            />
+          </Tooltip>
+        </Flex>
+
+        <Flex align="center" gap={4}>
+          <Flex align="center" gap="2">
+            Page{" "}
+            <Text fontWeight="bold" as="span">
+              {pageIndex + 1}
+            </Text>
+            of
+            <Text fontWeight="bold" as="span">
+              {pageOptions.length}
+            </Text>
+          </Flex>
+
+          <Flex align="center" gap={4}>
+            Goto Page{" "}
+            <NumberInput
+              w={28}
+              min={1}
+              max={pageOptions.length}
+              onChange={(value) => {
+                const page = value ? value - 1 : 0;
+                gotoPage(page);
+              }}
+              defaultValue={pageIndex + 1}
+            >
+              <NumberInputField />
+              <NumberInputStepper>
+                <NumberIncrementStepper />
+                <NumberDecrementStepper />
+              </NumberInputStepper>
+            </NumberInput>
+          </Flex>
+
+          <Select
+            w="32"
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+            }}
+          >
+            {[5, 10, 15, 20, 25, 100].map((pageSize) => (
+              <option key={pageSize} value={pageSize}>
+                Show {pageSize}
+              </option>
+            ))}
+          </Select>
+        </Flex>
+
+        <Flex gap="4">
+          <Tooltip label="Next Page">
+            <IconButton
+              onClick={nextPage}
+              icon={<ChevronRightIcon h="3" w="3" />}
+            />
+          </Tooltip>
+          <Tooltip label="Last Page">
+            <IconButton
+              onClick={() => {
+                gotoPage(pageCount - 1);
+              }}
+              icon={<ArrowRightIcon h="3" w="3" />}
+            />
+          </Tooltip>
+        </Flex>
+      </Flex>
     </>
   );
 };
