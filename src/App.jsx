@@ -92,6 +92,7 @@ const App = () => {
     pageCount,
     pageOptions,
     setPageSize,
+    canPreviousPage,
     state: { pageIndex, pageSize },
   } = useTable(
     {
@@ -159,12 +160,14 @@ const App = () => {
           <Tooltip label="First Page">
             <IconButton
               onClick={() => gotoPage(0)}
+              isDisabled={!canPreviousPage}
               icon={<ArrowLeftIcon h="3" w="3" />}
             />
           </Tooltip>
           <Tooltip label="Prev Page">
             <IconButton
               onClick={prevPage}
+              isDisabled={!canPreviousPage}
               icon={<ChevronLeftIcon h="3" w="3" fontSize="xl" />}
             />
           </Tooltip>
